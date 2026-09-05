@@ -1,0 +1,44 @@
+{
+  "version": "0.18.0",
+  "files": [
+    {
+      "path": "dist/src/cli/browserConfig.js",
+      "pristine": "52ddb9d0289849301f83863ed0b5209b8d9f071358e7784fcf4a5c8724b1c147",
+      "patched": "32f2d9f936098d99d23ba37b595d737c9705d34cf1466a69c62e15ed28d3eea3",
+      "replacements": [
+        {
+          "before": "const BROWSER_MODEL_LABELS = [",
+          "after": "const BROWSER_MODEL_LABELS = [\n    [\"gpt-6-pro\", \"GPT-6 Pro\"],"
+        }
+      ]
+    },
+    {
+      "path": "dist/src/browser/actions/modelSelection.js",
+      "pristine": "18f661ede6c4dbeb21ad99b5e9897dbc226721fe5027a85acf580791e90a0970",
+      "patched": "bfdf3a2d5bad4f2fba2f00ab31b8bd073dde9c07d3992f69d78f02d5c6694a71",
+      "replacements": [
+        {
+          "before": "export async function ensureModelSelection(Runtime, desiredModel, logger, strategy = \"select\", options = {}) {",
+          "after": "export async function ensureModelSelection(Runtime, desiredModel, logger, strategy = \"select\", options = {}) {\n    if (strategy === \"select\" && /^GPT[- ]6[- ]Pro$/i.test(desiredModel)) {\n        const { ensurePowerPicker } = await import(\"./power-picker.mjs\");\n        const selected = await ensurePowerPicker(Runtime, desiredModel, \"pro\");\n        if (!selected?.verified) throw new Error(\"GPT-6 Pro selection was not verified.\");\n        logger(`Model picker: ${selected.label}`);\n        return { requestedModel: desiredModel, resolvedLabel: selected.label, strategy,\n            status: selected.status, verified: true, source: selected.source,\n            capturedAt: new Date().toISOString() };\n    }"
+        }
+      ]
+    },
+    {
+      "path": "dist/src/browser/actions/thinkingTime.js",
+      "pristine": "3d9d06b08417bca3b2d646eb4d46887d26c5de7c068d1e995c73b6b6e2f61199",
+      "patched": "36d1f5e776055a3cabe41d2adce17edbbdde612244aea0cdd1bdfcf52024c4bf",
+      "replacements": [
+        {
+          "before": "export async function ensureThinkingTime(Runtime, level, logger, desiredModel) {",
+          "after": "export async function ensureThinkingTime(Runtime, level, logger, desiredModel) {\n    const { ensurePowerPicker } = await import(\"./power-picker.mjs\");\n    const selectedPower = await ensurePowerPicker(Runtime, desiredModel, level);\n    if (selectedPower?.verified) {\n        logger(`[browser] Thinking time: ${selectedPower.label} (Power ${selectedPower.power + 1}/5 verified)`);\n        return;\n    }"
+        }
+      ]
+    },
+    {
+      "path": "dist/src/browser/actions/power-picker.mjs",
+      "pristine": null,
+      "patched": "19756c7558489b8120ed559206407c53da7df8e7ebfac2b8e5390c8e4d0b51ee",
+      "source": "power-picker.mjs"
+    }
+  ]
+}
