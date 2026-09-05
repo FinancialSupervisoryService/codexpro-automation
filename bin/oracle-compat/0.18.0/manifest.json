@@ -39,6 +39,21 @@
       "pristine": null,
       "patched": "19756c7558489b8120ed559206407c53da7df8e7ebfac2b8e5390c8e4d0b51ee",
       "source": "power-picker.mjs"
+    },
+    {
+      "path": "dist/src/cli/options.js",
+      "pristine": "948a3ff242f7e9060a82c7bfbd60f89e13cbb7e7cbd0273ab7b8e7a6c58d22dc",
+      "patched": "0eecbac251c974b1d1f71f1cf9eef1529877fdd61fe8c7d0146a74a5cc9e90ad",
+      "replacements": [
+        {
+          "before": "export function resolveApiModel(modelValue) {",
+          "after": "export function resolveApiModel(modelValue) {\n    if (/^gpt[- ]6[- ]pro$/i.test(String(modelValue).trim())) return \"gpt-6-pro\";"
+        },
+        {
+          "before": "export function inferModelFromLabel(modelValue) {",
+          "after": "export function inferModelFromLabel(modelValue) {\n    if (/^gpt[- ]6[- ]pro$/i.test(String(modelValue).trim())) return \"gpt-6-pro\";"
+        }
+      ]
     }
   ]
 }
