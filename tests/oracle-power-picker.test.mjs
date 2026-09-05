@@ -2,6 +2,31 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { selectPowerPickerInPage } from '../bin/oracle-compat/0.18.0/power-picker.mjs';
+import { clickComposerSendInPage } from '../bin/oracle-compat/0.18.0/composer-send.mjs';
+
+test('composer activates one resolved button without stale coordinate clicks and waits for readiness', () => {
+  class Element {
+    disabled = true; clicks = 0;
+    getBoundingClientRect() { return { width: 36, height: 36, x: Math.random() * 1000 }; }
+    hasAttribute(name) { return name === 'disabled' && this.disabled; }
+    getAttribute() { return null; }
+    click() { this.clicks++; }
+    scrollIntoView() { throw new Error('coordinate sampling must not scroll the composer'); }
+  }
+  const button = new Element();
+  const matches = [button];
+  const context = vm.createContext({ HTMLElement: Element,
+    document: { querySelectorAll: () => matches },
+    window: { getComputedStyle: () => ({ display: 'block', visibility: 'visible', pointerEvents: 'auto' }) },
+  });
+  const run = () => vm.runInContext(`(${clickComposerSendInPage})(['a','b'])`, context);
+  assert.equal(run().status, 'missing'); assert.equal(button.clicks, 0);
+  button.disabled = false;
+  assert.equal(run().status, 'clicked'); assert.equal(button.clicks, 1);
+  const duplicate = new Element(); duplicate.disabled = false; matches.push(duplicate);
+  assert.throws(run, /ambiguous/);
+  assert.equal(button.clicks, 1); assert.equal(duplicate.clicks, 0);
+});
 
 // Observed September picker: a focusable menuitem owns an aria-hidden slider;
 // the model list is inert until expanded, and selecting it returns to simple view.

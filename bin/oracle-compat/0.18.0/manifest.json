@@ -54,6 +54,31 @@
           "after": "export function inferModelFromLabel(modelValue) {\n    if (/^gpt[- ]6[- ]pro$/i.test(String(modelValue).trim())) return \"gpt-6-pro\";"
         }
       ]
+    },
+    {
+      "path": "dist/src/browser/actions/promptComposer.js",
+      "pristine": "db090a5fb6d13c4c88a68b5e474a53a19c3857295a64c3ba4a0eef1868d06000",
+      "patched": "ded4ad93a5e68869b90f56719d4e9ddead8cd902700f457234a4e1a9a8703ab9",
+      "replacements": [
+        {
+          "before": "    const script = `(() => {\n    ${buildClickDispatcher()}\n    const selectors = ${JSON.stringify(SEND_BUTTON_SELECTORS)};\n    const isVisible = (node) => {\n      if (!(node instanceof HTMLElement)) return false;\n      const rect = node.getBoundingClientRect();\n      if (rect.width <= 0 || rect.height <= 0) return false;\n      const style = window.getComputedStyle(node);\n      return style.display !== 'none' && style.visibility !== 'hidden';\n    };\n    const isEnabled = (node) => {\n      const ariaDisabled = node.getAttribute('aria-disabled');\n      const dataDisabled = node.getAttribute('data-disabled');\n      const style = window.getComputedStyle(node);\n      return !(\n        node.hasAttribute('disabled') ||\n        ariaDisabled === 'true' ||\n        dataDisabled === 'true' ||\n        style.pointerEvents === 'none' ||\n        style.display === 'none'\n      );\n    };\n    const candidates = [];\n    for (const selector of selectors) {\n      candidates.push(...Array.from(document.querySelectorAll(selector)));\n    }\n    const button = candidates.find((node) => isVisible(node) && isEnabled(node)) || null;\n    if (!button) return { status: 'missing' };\n    button.scrollIntoView({ block: 'center', inline: 'center' });\n    const rect = button.getBoundingClientRect();\n    if (rect.width > 0 && rect.height > 0) {\n      return { status: 'point', x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };\n    }\n    // Last-resort fallback for unusual DOMs where the button is visible but has no useful rect.\n    dispatchClickSequence(button);\n    return { status: 'clicked' };\n  })()`;",
+          "after": "    const { clickComposerSendInPage } = await import(\"./composer-send.mjs\");\n    const script = `(${clickComposerSendInPage})(${JSON.stringify(SEND_BUTTON_SELECTORS)})`;"
+        },
+        {
+          "before": "        if (status === \"missing\") {\n            break;\n        }",
+          "after": "        if (status === \"missing\") {\n            await delay(150);\n            continue;\n        }"
+        },
+        {
+          "before": "    return false;\n}\nasync function clickTrustedPoint",
+          "after": "    throw new BrowserAutomationError(\"Send button did not become ready; prompt was not submitted.\", {\n        stage: \"submit-prompt\", code: \"send-button-not-ready\",\n    });\n}\nasync function clickTrustedPoint"
+        }
+      ]
+    },
+    {
+      "path": "dist/src/browser/actions/composer-send.mjs",
+      "pristine": null,
+      "patched": "182d5774cdb3c147883655358eb36bb15b77b666da14ef845dd4f0bd38444bf1",
+      "source": "composer-send.mjs"
     }
   ]
 }

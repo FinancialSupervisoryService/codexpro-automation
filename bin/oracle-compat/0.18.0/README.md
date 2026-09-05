@@ -5,3 +5,5 @@ This separately versioned patch supports the September 2026 ChatGPT model list a
 Run `node apply-power-picker.mjs <new-oracle-package-root>` only while preparing a new immutable Oracle 0.18.0 runtime. The manifest checks exact upstream bytes before any write and records exact output hashes. Already-patched bytes are idempotent; unknown bytes and symlink/hardlink targets are rejected. Existing browser profiles and session state are never accessed. This patch does not update the separate 0.16.1 desktop compatibility deployment.
 
 Validation: `node --test tests/oracle-power-picker.test.mjs` from the repository root. Browser model-selection evidence must still be checked during live acceptance; fixture tests are not proof of a submitted GPT-6 Pro run.
+
+The composer patch activates the resolved enabled send button in one DOM operation so expansion or scrolling cannot invalidate sampled coordinates. It waits for readiness and fails without Enter fallback when no send button becomes available. Commit confirmation and exact-session recovery remain mandatory; an attempted click is not proof of submission.
