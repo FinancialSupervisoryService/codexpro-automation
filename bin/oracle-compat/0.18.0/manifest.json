@@ -37,7 +37,7 @@
     {
       "path": "dist/src/browser/actions/power-picker.mjs",
       "pristine": null,
-      "patched": "19756c7558489b8120ed559206407c53da7df8e7ebfac2b8e5390c8e4d0b51ee",
+      "patched": "91828f495d50b9b4544d3765b67665624364e301365c44051b1e6c3f71df71a4",
       "source": "power-picker.mjs"
     },
     {

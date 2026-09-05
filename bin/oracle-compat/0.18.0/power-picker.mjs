@@ -14,6 +14,17 @@ export async function selectPowerPickerInPage({ model, level, timeoutMs = 8000 }
     && el.getBoundingClientRect().width && el.getBoundingClientRect().height);
   const disabled = el => !el || el.disabled || el.getAttribute('aria-disabled') === 'true'
     || el.hasAttribute('data-disabled');
+  // Radix opens menu triggers on pointerdown, not HTMLElement.click(). Match
+  // Oracle's existing DOM click dispatcher instead of skipping the pointer events.
+  const click = el => {
+    for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {
+      const init = { bubbles: true, cancelable: true, view: window };
+      const event = type.startsWith('pointer') && typeof PointerEvent !== 'undefined'
+        ? new PointerEvent(type, { ...init, pointerId: 1, pointerType: 'mouse' })
+        : new MouseEvent(type, init);
+      el.dispatchEvent(event);
+    }
+  };
   const wait = async read => {
     while (Date.now() < deadline) { const result = read(); if (result) return result; await sleep(); }
     return null;
@@ -24,7 +35,7 @@ export async function selectPowerPickerInPage({ model, level, timeoutMs = 8000 }
     if (wantsSixPro) throw new Error('GPT-6 Pro composer picker is unavailable; refusing to submit.');
     return null;
   }
-  if (trigger.getAttribute('aria-expanded') !== 'true') trigger.click();
+  if (trigger.getAttribute('aria-expanded') !== 'true') click(trigger);
   const picker = await wait(() => {
     const menu = document.getElementById(trigger.getAttribute('aria-controls'));
     const candidate = menu?.querySelector('[data-testid="composer-intelligence-picker-content"]');
@@ -41,16 +52,16 @@ export async function selectPowerPickerInPage({ model, level, timeoutMs = 8000 }
   if (wantsSixPro && latest()?.getAttribute('aria-checked') !== 'true') {
     const control = toggle();
     if (!visible(control) || disabled(control)) throw new Error('Latest model control is unavailable.');
-    if (control.getAttribute('aria-expanded') !== 'true') control.click();
+    if (control.getAttribute('aria-expanded') !== 'true') click(control);
     const option = await wait(() => visible(latest()) && !disabled(latest()) ? latest() : null);
     if (!option) throw new Error('Latest model option is unavailable; refusing to submit GPT-6 Pro.');
-    option.click();
+    click(option);
     if (!await wait(() => latest()?.getAttribute('aria-checked') === 'true')) {
       throw new Error('Latest model selection was not confirmed.');
     }
   }
   // Selecting a model returns to simple view. Collapse an already-open model list.
-  if (toggle()?.getAttribute('aria-expanded') === 'true') toggle().click();
+  if (toggle()?.getAttribute('aria-expanded') === 'true') click(toggle());
   const power = await wait(() => {
     const view = picker.querySelector('[data-testid="composer-model-picker-slider-simple-view"]');
     const el = view?.querySelector('[role="menuitem"][aria-keyshortcuts]');
@@ -86,7 +97,7 @@ export async function selectPowerPickerInPage({ model, level, timeoutMs = 8000 }
   if (!wantsSixPro && target === 4 && !/^Pro(?:\s|,|$)/i.test(announcement())) {
     throw new Error('Pro power label was not confirmed; refusing to submit.');
   }
-  trigger.click();
+  click(trigger);
   const closed = await wait(() => trigger.getAttribute('aria-expanded') === 'false');
   if (!closed || (wantsSixPro && !await wait(() => sixPro(trigger.textContent)))) {
     throw new Error('Composer did not retain the requested model and power.');

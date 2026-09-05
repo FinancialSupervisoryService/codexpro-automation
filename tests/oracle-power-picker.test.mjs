@@ -16,17 +16,18 @@ function fixture({ latest = false, value = 2, latestModel = '6', locked = false,
     closest() { return visibility() ? null : {}; },
     getBoundingClientRect() { return { width: visibility() ? 100 : 0, height: 30 }; },
     focus() {}, querySelector() { return null; }, querySelectorAll() { return []; },
+    dispatchEvent(event) { if (event.type === 'click') this.onClick?.(); },
   });
   const trigger = node({ 'aria-expanded': () => String(state.open), 'aria-controls': 'menu' });
   Object.defineProperty(trigger, 'textContent', { get: () => state.open ? 'Thinking effort' : currentLabel() });
-  trigger.click = () => { state.open = !state.open; };
+  trigger.dispatchEvent = event => { if (event.type === 'pointerdown') state.open = !state.open; };
   const picker = node({}, () => state.open);
   const toggle = node({ 'aria-expanded': () => String(state.advanced) }, () => state.open);
   Object.defineProperty(toggle, 'textContent', { get: currentLabel });
-  toggle.click = () => { state.advanced = !state.advanced; };
+  toggle.onClick = () => { state.advanced = !state.advanced; };
   const latestRow = node({ 'aria-checked': () => String(state.latest), 'aria-disabled': String(locked) }, () => state.open && state.advanced);
   latestRow.textContent = 'Latest';
-  latestRow.click = () => { if (!locked) { state.latest = true; state.advanced = false; } };
+  latestRow.onClick = () => { if (!locked) { state.latest = true; state.advanced = false; } };
   const advanced = node(); advanced.querySelectorAll = () => [latestRow];
   const slider = node({ 'aria-valuemin': '0', 'aria-valuemax': max, 'aria-valuenow': () => String(state.value) });
   const power = node({ 'aria-describedby': 'announcement keys' }, () => state.open && !state.advanced);
@@ -57,7 +58,10 @@ function fixture({ latest = false, value = 2, latestModel = '6', locked = false,
     },
     Date: { now: () => now },
     setTimeout(fn) { now += 100; fn(); },
+    window: {},
     KeyboardEvent: class { constructor(type, fields) { Object.assign(this, { type }, fields); } },
+    PointerEvent: class { constructor(type, fields) { Object.assign(this, { type }, fields); } },
+    MouseEvent: class { constructor(type, fields) { Object.assign(this, { type }, fields); } },
   });
   return { state, run: args => vm.runInContext(`(${selectPowerPickerInPage})(${JSON.stringify({ timeoutMs: 1200, ...args })})`, context) };
 }
